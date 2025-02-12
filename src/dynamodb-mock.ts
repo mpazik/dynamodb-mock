@@ -16,6 +16,7 @@ import type {
   BatchGetCommandOutput,
   BatchGetCommandInput,
 } from "@aws-sdk/lib-dynamodb";
+import { M } from "vitest/dist/chunks/environment.d8YfPkTm";
 
 type Item = Record<string, any>;
 type IndexDefinitions = {
@@ -123,7 +124,11 @@ export class DynamoDBMock implements DynamoDBDocument {
 
   constructor(indexDefinitions: IndexDefinitions) {
     this.indexDefinitions = indexDefinitions;
-    Object.keys(this.indexDefinitions).forEach((tableName) => {
+    this.setupTables();
+  }
+
+  private setupTables() {
+Object.keys(this.indexDefinitions).forEach((tableName) => {
       this.tables[tableName] = {
         primary: new Map(),
         indexes: Object.keys(this.indexDefinitions[tableName]).reduce(
@@ -511,7 +516,7 @@ export class DynamoDBMock implements DynamoDBDocument {
   async transactWrite(): Promise<never> {
     throw new Error("Method not implemented: transactWrite");
   }
-  
+
   async send(command: any): Promise<any> {
     const commandName = command.constructor.name;
     switch (commandName) {
@@ -556,5 +561,14 @@ export class DynamoDBMock implements DynamoDBDocument {
   }
   async executeTransaction(): Promise<never> {
     throw new Error("Method not implemented: executeTransaction");
+  }
+
+  // Internal testing methods
+  getTable(tableName: string): Map<string, Item[]> {
+    return this.tables[tableName].primary;
+  }
+
+  clearAll() {
+    this.setupTables();
   }
 }
